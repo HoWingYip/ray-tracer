@@ -5,10 +5,10 @@
 #include "Ray3.h"
 
 #include <utility>
-
 class Object {
-  template <typename T>
-  std::pair<bool, Point3> rayIntersect(Ray3 ray);
+  public:
+    Vec3 color;
+    std::pair<bool, Point3> rayIntersect(Ray3 ray);
 };
 
 #endif /* OBJECT_H */

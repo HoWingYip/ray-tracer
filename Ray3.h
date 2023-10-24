@@ -14,7 +14,7 @@ class Ray3 {
     Ray3(Vec3 a_, Vec3 d_) : base(a_), direction(d_) {}
 
     Point3 produce(const float_type t) {
-      return base + direction*t;
+      return base + t*direction;
     }
 };
 
