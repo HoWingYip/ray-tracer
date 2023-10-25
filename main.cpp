@@ -1,18 +1,20 @@
 #include "Point3.h"
 #include "Ray3.h"
 #include "Object.h"
+#include "Pixel.h"
+#include "Image.h"
 
 #include <vector>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <array>
 
-using Pixel = std::array<uint8_t, 3>;
-using Image = std::vector<std::vector<Pixel>>;
+// using Image = std::vector<std::vector<Pixel>>;
 
-std::ostream &operator<<(std::ostream &os, Pixel &p) {
-  os << std::to_string(p[0]) << ' ' << std::to_string(p[1]) << ' ' << std::to_string(p[2]);
+std::ostream &operator<<(std::ostream &os, const Pixel &pixel) {
+  os << pixel.r() << ' ' << pixel.g() << ' ' << pixel.b();
   return os;
 }
 
@@ -23,11 +25,11 @@ class Scene {
     std::vector<Object> objs;
 
     Image renderImg(uint32_t imgWidth, uint32_t imgHeight, int projectionType) {
-      Image img(imgHeight);
-      for (int i = 0; i < imgHeight; i++) {
+      Image img(imgHeight, imgWidth);
+      for (size_t i = 0; i < imgHeight; i++) {
         std::vector<Pixel> imgRow(imgWidth);
-        for (int j = 0; j < imgWidth; j++) {
-          imgRow[j] = {255, 0, 255};
+        for (size_t j = 0; j < imgWidth; j++) {
+          imgRow[j] = Pixel(255., 255., 0.);
         }
         img[i] = imgRow;
       }
@@ -40,6 +42,9 @@ class Scene {
       Image img = renderImg(imgWidth, imgHeight, projectionType);
 
       std::ostringstream oss;
+      // PPM format only accepts integers for intensity values
+      // so truncate all outputted floats to ints
+      oss << std::fixed << std::setprecision(0);
 
       // P3 means colours are in ASCII and each channel can take on 256 intensity values (0-255)
       // 255 is max intensity of the pixels we're gonna output
@@ -50,7 +55,9 @@ class Scene {
       // like normal 2D array output
       for (int i = 0; i < imgHeight; i++) {
         for (int j = 0; j < imgWidth; j++) {
-          oss << img[i][j] << ' ';
+          // our ostringstream truncates floats, but let's round them before outputting
+          // for greater color accuracy
+          oss << img[i][j].round() << ' ';
         }
       }
 
