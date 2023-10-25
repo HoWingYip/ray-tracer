@@ -4,6 +4,8 @@
 #include "Vec3.h"
 #include "settings.h"
 
+#include <ostream>
+
 class Pixel : public Vec3 {
   using Vec3::Vec3; // inherit all Vec3 constructors
 
@@ -16,5 +18,10 @@ class Pixel : public Vec3 {
       return Pixel(std::round(r()), std::round(g()), std::round(b()));
     }
 };
+
+std::ostream &operator<<(std::ostream &os, const Pixel &pixel) {
+  os << pixel.r() << ' ' << pixel.g() << ' ' << pixel.b();
+  return os;
+}
 
 #endif /* PIXEL_H */
