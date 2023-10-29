@@ -22,6 +22,26 @@ class Scene {
       objs.push_back(obj);
     }
 
+    Color getRayColor(Ray3 ray, uint16_t bouncesLeft) {
+      // Cast ray and get color. This function is recursive.
+
+      if (bouncesLeft == 0) {
+        return Color(0, 0, 0);
+      }
+
+      /*
+      1. Find first object intersected by ray
+      2. If specular reflection:
+           Cast reflected ray off of that object by formula incident - 2*normal*dot(incident, normal)
+           and find color of reflected ray through a recursive call
+         If diffuse reflection:
+           Cast reflected ray in random direction and find its color through recursive call
+      3. Multiply reflected ray color by object color reflection coefficients to find incident ray color
+         (taking into account Lambertian intensity calculation for diffuse reflection)
+      4. Return color of incident ray.
+      */
+    }
+
     Image renderImg(uint32_t imgWidth, uint32_t imgHeight, int projectionType) {
       Image img(imgHeight, imgWidth);
       for (size_t i = 0; i < imgHeight; i++) {

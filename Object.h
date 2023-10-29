@@ -3,12 +3,26 @@
 
 #include "Point3.h"
 #include "Ray3.h"
+#include "Color.h";
 
 #include <utility>
+
+// TODO: refactor rayIntersect to return color at hit point
 class Object {
   public:
-    Vec3 color;
-    std::pair<bool, Point3> rayIntersect(Ray3 ray);
+    Color color;
+
+    // returns value of parameter of ray that gives the intersection point
+    std::pair<bool, float_type> findIntersectParam(Ray3 ray);
+
+  private:
+    // having a purely boolean function to check ray intersect seems natural in theory
+    // but it turns out that the algebra used in calculating whether there exists an intersection
+    // is also instrumental in calculating the intersect param (if it exists)
+    // so I have opted to not implement such a boolean function for now
+    // bool doesRayIntersect(Ray3 ray);
+
+    Ray3 normal(Point3 hitPoint);
 };
 
 #endif /* OBJECT_H */
