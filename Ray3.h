@@ -16,6 +16,10 @@ class Ray3 {
     Point3 produce(const float_type t) {
       return base + t*direction;
     }
+
+    Ray3 norm() {
+      return Ray3(base, direction.norm());
+    }
 };
 
 #endif /* RAY3_H */

@@ -8,18 +8,14 @@
 
 class Image {
   public:
-    uint32_t height;
-    uint32_t width;
+    const uint32_t height;
+    const uint32_t width;
 
     Image(uint32_t imgHeight, uint32_t imgWidth) : height(imgHeight), width(imgWidth) {
       pixArray.resize(height);
       for (size_t i = 0; i < height; i++) {
         pixArray[i].resize(width);
       }
-    }
-    Image(std::vector<std::vector<Pixel>> pixArray_) : pixArray(pixArray_) {
-      height = pixArray.size();
-      width = pixArray[0].size();
     }
 
     Image round() {

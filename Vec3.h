@@ -4,6 +4,7 @@
 #include "settings.h"
 
 #include <cmath>
+#include <ostream>
 
 class Vec3 {
   public:
@@ -14,8 +15,13 @@ class Vec3 {
     Vec3(float_type x, float_type y, float_type z) : e{x, y, z} {}
 
     float_type x() const { return e[0]; }
+    void setX(float_type newX) { e[0] = newX; }
+
     float_type y() const { return e[1]; }
+    void setY(float_type newY) { e[0] = newY; }
+
     float_type z() const { return e[2]; }
+    void setZ(float_type newZ) { e[0] = newZ; }
 
     float_type operator[](std::size_t i) const { return e[i]; }
     float_type operator[](std::size_t i) { return e[i]; }
@@ -118,6 +124,11 @@ inline Vec3 cross(const Vec3 &u, const Vec3 &v) {
     u.e[2]*v.e[0] - u.e[0]*v.e[2],
     u.e[0]*v.e[1] - u.e[1]*v.e[0]
   );
+}
+
+std::ostream &operator<<(std::ostream &os, const Vec3 &v) {
+  os << v.x() << ' ' << v.y() << ' ' << v.z();
+  return os;
 }
 
 #endif /* VEC3_H */

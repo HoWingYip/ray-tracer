@@ -8,7 +8,9 @@
 
 #include <algorithm>
 
-class Sphere : Object {
+class Sphere : public Object {
+  using Object::findIntersectParam;
+
   public:
     Point3 center;
     float_type radius;
@@ -18,7 +20,7 @@ class Sphere : Object {
     }
 
     // returns value of parameter of ray that gives the intersection point
-    std::pair<bool, float_type> findIntersectParam(Ray3 ray) {
+    std::pair<bool, float_type> findIntersectParam(Ray3 ray) const override {
       float_type A = ray.direction.length();
       float_type B = 2*dot(ray.direction, (ray.base - center));
       float_type C = (ray.base - center).lengthSquared() - radius*radius;

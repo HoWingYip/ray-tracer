@@ -3,17 +3,18 @@
 
 #include "Point3.h"
 #include "Ray3.h"
-#include "Color.h";
+#include "Color.h"
 
 #include <utility>
+#include <iostream>
 
 // TODO: refactor rayIntersect to return color at hit point
 class Object {
   public:
-    Color color;
+    Color color; // TODO: change to Material
 
     // returns value of parameter of ray that gives the intersection point
-    std::pair<bool, float_type> findIntersectParam(Ray3 ray);
+    virtual std::pair<bool, float_type> findIntersectParam(Ray3 ray) const = 0;
 
   private:
     // having a purely boolean function to check ray intersect seems natural in theory

@@ -13,20 +13,40 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <memory>
 
 class Scene {
   public:
     Camera camera;
+    std::vector<std::shared_ptr<Object>> objects;
 
-    void addObject(const Object &obj) {
-      objs.push_back(obj);
+    void addObject(std::shared_ptr<Object> objPtr) {
+      objects.push_back(objPtr);
     }
 
     Color getRayColor(Ray3 ray, uint16_t bouncesLeft) {
       // Cast ray and get color. This function is recursive.
+      // std::cout << "Tracing ray (" << ray.base << "), (" << ray.direction << ")\n";
 
       if (bouncesLeft == 0) {
         return Color(0, 0, 0);
+      }
+
+      std::shared_ptr<Object> firstIntersectObjPtr(nullptr);
+      float_type prevMinT = INFINITY;
+      for (const std::shared_ptr<Object> &objPtr : objects) {
+        auto [doesIntersect, t] = objPtr->findIntersectParam(ray.norm());
+        // std::cout << doesIntersect << ' ' << t << '\n';
+        if (doesIntersect && t < prevMinT) {
+          firstIntersectObjPtr = objPtr;
+          prevMinT = t;
+        }
+      }
+
+      if (firstIntersectObjPtr != nullptr) {
+        return Color(255, 0, 0);
+      } else {
+        return Color(0, 0, 255);
       }
 
       /*
@@ -42,23 +62,36 @@ class Scene {
       */
     }
 
-    Image renderImg(uint32_t imgWidth, uint32_t imgHeight, int projectionType) {
+    Image renderImg(uint32_t imgWidth, uint32_t imgHeight, uint16_t maxBounces, int projectionType) {
+      // start at top left
+      float_type topLeftX = -((float_type)(imgWidth - 1)) / 2;
+      float_type topLeftY = ((float_type)(imgHeight - 1)) / 2;
+
+      Vec3 dx(1, 0, 0);
+      Vec3 dy(0, -1, 0);
+
+      Point3 currPixelVec(topLeftX, topLeftY, -camera.focalLength);
+
       Image img(imgHeight, imgWidth);
-      for (size_t i = 0; i < imgHeight; i++) {
-        std::vector<Pixel> imgRow(imgWidth);
-        for (size_t j = 0; j < imgWidth; j++) {
-          imgRow[j] = Pixel(255., 255., 0.);
+
+      for (uint32_t i = 0; i < imgHeight - 1; i++) {
+        currPixelVec.setX(topLeftX);
+        for (uint32_t j = 0; j < imgWidth - 1; j++) {
+          std::cout << currPixelVec << '\n';
+
+          img[i][j] = getRayColor(Ray3(Vec3(0, 0, 0), currPixelVec), maxBounces);
+          currPixelVec += dx;
         }
-        img[i] = imgRow;
+        currPixelVec += dy;
       }
 
       return img;
     }
 
-    void outputImg(uint32_t imgWidth, uint32_t imgHeight, int projectionType) {
+    void saveImg(uint32_t imgWidth, uint32_t imgHeight, uint16_t maxBounces, int projectionType) {
       // TODO: allow projectionType to be set to perspective or orthographic
 
-      Image img = renderImg(imgWidth, imgHeight, projectionType);
+      Image img = renderImg(imgWidth, imgHeight, maxBounces, projectionType);
 
       std::ostringstream oss;
       // PPM format only accepts integers for intensity values
@@ -90,9 +123,6 @@ class Scene {
       std::string imgStr = oss.str();
       fwrite(imgStr.data(), sizeof(char), imgStr.size(), pipe);
     }
-
-  private:
-    std::vector<Object> objs;
 };
 
 #endif /* SCENE_H */
