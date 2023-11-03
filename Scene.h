@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 #include <memory>
 
 class Scene {
@@ -25,41 +26,39 @@ class Scene {
     }
 
     Color getRayColor(Ray3 ray, uint16_t bouncesLeft) {
-      // Cast ray and get color. This function is recursive.
-      // std::cout << "Tracing ray (" << ray.base << "), (" << ray.direction << ")\n";
+      // TODO: if no object is hit, return AMBIENT LIGHT
+      // Ambient rays are always the "first" to bounce off an object
+      // and they come from EVERYWHERE - including the direction of that
+      // outgoing ray!
 
       if (bouncesLeft == 0) {
         return Color(0, 0, 0);
       }
 
+      // TODO: implement HitRecord (yes, I now realise it was a good idea)
       std::shared_ptr<Object> firstIntersectObjPtr(nullptr);
-      float_type prevMinT = INFINITY;
+      Point3 intersectPoint;
+      float_type minT = INFINITY;
       for (const std::shared_ptr<Object> &objPtr : objects) {
-        auto [doesIntersect, t] = objPtr->findIntersectParam(ray.norm());
+        auto [doesIntersect, currIntersectPoint, t] = objPtr->findIntersectParam(ray.norm());
         // std::cout << doesIntersect << ' ' << t << '\n';
-        if (doesIntersect && t < prevMinT) {
+        if (doesIntersect && t < minT) {
           firstIntersectObjPtr = objPtr;
-          prevMinT = t;
+          intersectPoint = currIntersectPoint;
+          minT = t;
         }
       }
 
-      if (firstIntersectObjPtr != nullptr) {
-        return Color(255, 0, 0);
-      } else {
-        return Color(0, 0, 255);
+      // if no intersection with any object, return ambient ray
+      if (firstIntersectObjPtr == nullptr) {
+        float_type y = (ray.direction.norm().y() + 1.) / 2;
+        return (1-y)*Color(99, 52, 200) + y*Color(255, 255, 255);
       }
 
-      /*
-      1. Find first object intersected by ray
-      2. If specular reflection:
-           Cast reflected ray off of that object by formula incident - 2*normal*dot(incident, normal)
-           and find color of reflected ray through a recursive call
-         If diffuse reflection:
-           Cast reflected ray in random direction and find its color through recursive call
-      3. Multiply reflected ray color by object color reflection coefficients to find incident ray color
-         (taking into account Lambertian intensity calculation for diffuse reflection)
-      4. Return color of incident ray.
-      */
+      Vec3 normalDir = firstIntersectObjPtr->normal(intersectPoint).direction;
+      Ray3 incomingRay(intersectPoint, ray.direction - 2*normalDir*dot(normalDir, ray.direction));
+      
+      return firstIntersectObjPtr->color / 255. * getRayColor(incomingRay, bouncesLeft-1);
     }
 
     Image renderImg(uint32_t imgWidth, uint32_t imgHeight, uint16_t maxBounces, int projectionType) {
@@ -75,10 +74,12 @@ class Scene {
       Image img(imgHeight, imgWidth);
 
       for (uint32_t i = 0; i < imgHeight - 1; i++) {
+        if ((i+1) % 100 == 0) {
+          std::cout << "Rendering row " << i+1 << " of " << imgHeight << '\n';
+        }
+
         currPixelVec.setX(topLeftX);
         for (uint32_t j = 0; j < imgWidth - 1; j++) {
-          std::cout << currPixelVec << '\n';
-
           img[i][j] = getRayColor(Ray3(Vec3(0, 0, 0), currPixelVec), maxBounces);
           currPixelVec += dx;
         }
@@ -93,35 +94,37 @@ class Scene {
 
       Image img = renderImg(imgWidth, imgHeight, maxBounces, projectionType);
 
-      std::ostringstream oss;
+      // std::ostringstream oss;
+      std::ofstream ofs("output.ppm");
       // PPM format only accepts integers for intensity values
       // so truncate all outputted floats to ints
-      oss << std::fixed << std::setprecision(0);
+      ofs << std::fixed << std::setprecision(0);
 
-      oss << "P3\n" << imgWidth << ' ' << imgHeight << "\n255\n";
+      ofs << "P3\n" << imgWidth << ' ' << imgHeight << "\n255\n";
 
-      for (int i = 0; i < imgHeight; i++) {
-        if ((i+1) % 100 == 0) {
-          std::cout << "Rendering row " << i+1 << " of " << imgHeight << '\n';
-        }
-        
+      for (int i = 0; i < imgHeight; i++) {        
         for (int j = 0; j < imgWidth; j++) {
           // our ostringstream truncates floats, but let's round them before outputting
           // for greater color accuracy
-          oss << img[i][j].round() << ' ';
+          ofs << img[i][j].round() << '\n';
         }
       }
 
-      std::cout << "Converting to PNG\n";
+      ofs.flush();
 
-      FILE *pipe = popen("pnmtopng > output.png", "w");
-      if (!pipe) {
-        std::cerr << "Couldn't start pnmtopng\n";
-        return;
-      }
-      
-      std::string imgStr = oss.str();
-      fwrite(imgStr.data(), sizeof(char), imgStr.size(), pipe);
+      // ofs << oss.str() << '\n';
+
+      std::cout << "Converting to PNG\n";
+      system("pnmtopng output.ppm > output.png");
+
+      // FILE *pipe;
+      // if (pipe = popen("pnmtopng > output.png", "w")) {
+      //   std::string imgStr = oss.str();
+      //   fwrite(imgStr.data(), sizeof(char), imgStr.size(), pipe);
+      // } else {
+      //   std::cerr << "Couldn't start pnmtopng\n";
+      //   return;
+      // }
     }
 };
 

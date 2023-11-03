@@ -18,16 +18,6 @@ class Image {
       }
     }
 
-    Image round() {
-      Image roundedImg = Image(height, width);
-      for (size_t i = 0; i < height; i++) {
-        for (size_t j = 0; j < width; j++) {
-          roundedImg[i][j] = pixArray[i][j].round();
-        }
-      }
-      return roundedImg;
-    }
-
     std::vector<Pixel> &operator[](size_t i) {
       return pixArray[i];
     }

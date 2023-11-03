@@ -1,7 +1,7 @@
 #ifndef PIXEL_H
 #define PIXEL_H
 
-#include "Color.h"
+#include "Vec3.h"
 
 using Pixel = Color;
 

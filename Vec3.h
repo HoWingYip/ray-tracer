@@ -38,6 +38,10 @@ class Vec3 {
       return *this / length();
     }
 
+    Vec3 round() const {
+      return Vec3(std::round(e[0]), std::round(e[1]), std::round(e[2]));
+    }
+
     friend float_type dot(const Vec3 &u, const Vec3 &v);
     friend Vec3 cross(const Vec3 &u, const Vec3 &v);
 
@@ -130,5 +134,8 @@ std::ostream &operator<<(std::ostream &os, const Vec3 &v) {
   os << v.x() << ' ' << v.y() << ' ' << v.z();
   return os;
 }
+
+using Point3 = Vec3;
+using Color = Vec3;
 
 #endif /* VEC3_H */
