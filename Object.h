@@ -1,7 +1,6 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "Point3.h"
 #include "Ray3.h"
 
 #include <utility>

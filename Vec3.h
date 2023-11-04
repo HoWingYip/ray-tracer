@@ -2,6 +2,7 @@
 #define VEC3_H
 
 #include "settings.h"
+#include "utility.h"
 
 #include <cmath>
 #include <ostream>
@@ -40,6 +41,10 @@ class Vec3 {
 
     Vec3 round() const {
       return Vec3(std::round(e[0]), std::round(e[1]), std::round(e[2]));
+    }
+
+    static Vec3 random(float_type min, float_type max) {
+      return Vec3(randomFloat(min, max), randomFloat(min, max), randomFloat(min, max));
     }
 
     friend float_type dot(const Vec3 &u, const Vec3 &v);

@@ -2,7 +2,6 @@
 #define RAY3_H
 
 #include "Vec3.h"
-#include "Point3.h"
 #include "settings.h"
 
 class Ray3 {

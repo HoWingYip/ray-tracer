@@ -1,12 +1,12 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "Point3.h"
 #include "Ray3.h"
 #include "Object.h"
 #include "Pixel.h"
 #include "Image.h"
 #include "Camera.h"
+#include "settings.h"
 
 #include <vector>
 #include <string>
@@ -26,16 +26,11 @@ class Scene {
     }
 
     Color getRayColor(Ray3 ray, uint16_t bouncesLeft) {
-      // TODO: if no object is hit, return AMBIENT LIGHT
-      // Ambient rays are always the "first" to bounce off an object
-      // and they come from EVERYWHERE - including the direction of that
-      // outgoing ray!
-
       if (bouncesLeft == 0) {
         return Color(0, 0, 0);
       }
 
-      // TODO: implement HitRecord (yes, I now realise it was a good idea)
+      // TODO: implement HitRecord?
       std::shared_ptr<Object> firstIntersectObjPtr(nullptr);
       Point3 intersectPoint;
       float_type minT = INFINITY;
@@ -56,7 +51,7 @@ class Scene {
       }
 
       Vec3 normalDir = firstIntersectObjPtr->normal(intersectPoint).direction;
-      Ray3 incomingRay(intersectPoint, ray.direction - 2*normalDir*dot(normalDir, ray.direction));
+      Ray3 incomingRay(intersectPoint, ray.direction - 2*dot(normalDir, ray.direction)*normalDir);
       
       return firstIntersectObjPtr->color / 255. * getRayColor(incomingRay, bouncesLeft-1);
     }
@@ -65,13 +60,12 @@ class Scene {
       // start at top left
       float_type topLeftX = -((float_type)(imgWidth - 1)) / 2;
       float_type topLeftY = ((float_type)(imgHeight - 1)) / 2;
+      
+      Point3 currPixelVec(topLeftX, topLeftY, -camera.focalLength);
+      Image img(imgHeight, imgWidth);
 
       Vec3 dx(1, 0, 0);
       Vec3 dy(0, -1, 0);
-
-      Point3 currPixelVec(topLeftX, topLeftY, -camera.focalLength);
-
-      Image img(imgHeight, imgWidth);
 
       for (uint32_t i = 0; i < imgHeight - 1; i++) {
         if ((i+1) % 100 == 0) {
@@ -79,8 +73,17 @@ class Scene {
         }
 
         currPixelVec.setX(topLeftX);
+
         for (uint32_t j = 0; j < imgWidth - 1; j++) {
-          img[i][j] = getRayColor(Ray3(Vec3(0, 0, 0), currPixelVec), maxBounces);
+          Color currPixelColor = Color(0, 0, 0);
+          // Multi-sample anti-aliasing (MSAA). TODO: implement in parallel!
+          for (uint16_t k = 0; k < samplesPerPixel; k++) {
+            Vec3 sampleVec = currPixelVec + Vec3::random(-0.5, 0.5);
+            currPixelColor += getRayColor(Ray3(Vec3(0, 0, 0), sampleVec), maxBounces);
+          }
+          currPixelColor /= samplesPerPixel;
+
+          img[i][j] = currPixelColor;
           currPixelVec += dx;
         }
         currPixelVec += dy;
@@ -94,8 +97,8 @@ class Scene {
 
       Image img = renderImg(imgWidth, imgHeight, maxBounces, projectionType);
 
-      // std::ostringstream oss;
       std::ofstream ofs("output.ppm");
+
       // PPM format only accepts integers for intensity values
       // so truncate all outputted floats to ints
       ofs << std::fixed << std::setprecision(0);
@@ -112,19 +115,8 @@ class Scene {
 
       ofs.flush();
 
-      // ofs << oss.str() << '\n';
-
       std::cout << "Converting to PNG\n";
       system("pnmtopng output.ppm > output.png");
-
-      // FILE *pipe;
-      // if (pipe = popen("pnmtopng > output.png", "w")) {
-      //   std::string imgStr = oss.str();
-      //   fwrite(imgStr.data(), sizeof(char), imgStr.size(), pipe);
-      // } else {
-      //   std::cerr << "Couldn't start pnmtopng\n";
-      //   return;
-      // }
     }
 };
 

@@ -2,7 +2,6 @@
 #define SPHERE_H
 
 #include "Object.h"
-#include "Point3.h"
 #include "settings.h"
 
 #include <algorithm>

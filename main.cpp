@@ -11,11 +11,13 @@ int main() {
   scene.camera.focalLength = 500.;
 
   scene.addObject(std::make_shared<Sphere>(
-    Point3(0, 0, -1000), 200., Color(128, 0, 128)
+    Point3(200, 0, -1000), 200., Color(128, 0, 128)
   ));
-
   scene.addObject(std::make_shared<Sphere>(
-    Point3(0, -10200, -1000), 10000, Color(200, 0, 0)
+    Point3(-200, 0, -1000), 200., Color(23, 235, 145)
+  ));
+  scene.addObject(std::make_shared<Sphere>(
+    Point3(0, -10200, -1000), 10000, Color(100, 100, 100)
   ));
 
   std::cout << "Scene contains " << scene.objects.size() << " objects\n";
